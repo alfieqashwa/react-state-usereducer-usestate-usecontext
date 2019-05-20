@@ -1,5 +1,7 @@
-import React, { useReducer, useState } from 'react';
+import React, { createContext, useContext, useReducer, useState } from 'react';
 import uuid from 'uuid/v4';
+
+const TodoContext = createContext(null);
 
 const initialTodos = [
   {
@@ -82,11 +84,11 @@ const App = () => {
   });
 
   return (
-    <div>
+    <TodoContext.Provider value={dispatchTodos}>
       <Filter dispatch={dispatchFilter} />
-      <TodoList dispatch={dispatchTodos} todos={filteredTodos} />
-      <AddTodo dispatch={dispatchTodos} />
-    </div>
+      <TodoList todos={filteredTodos} />
+      <AddTodo />
+    </TodoContext.Provider>
   );
 };
 
@@ -118,15 +120,17 @@ const Filter = ({ dispatch }) => {
   );
 };
 
-const TodoList = ({ dispatch, todos }) => (
+const TodoList = ({ todos }) => (
   <ul>
     {todos.map(todo => (
-      <TodoItem key={todo.id} dispatch={dispatch} todo={todo} />
+      <TodoItem key={todo.id} todo={todo} />
     ))}
   </ul>
 );
 
-const TodoItem = ({ dispatch, todo }) => {
+const TodoItem = ({ todo }) => {
+  const dispatch = useContext(TodoContext);
+
   const handleChange = () =>
     dispatch({
       type: todo.complete ? 'UNDO_TODO' : 'DO_TODO',
@@ -147,7 +151,9 @@ const TodoItem = ({ dispatch, todo }) => {
   );
 };
 
-const AddTodo = ({ dispatch }) => {
+const AddTodo = () => {
+  const dispatch = useContext(TodoContext);
+
   const [task, setTask] = useState('');
 
   const handleSubmit = event => {
